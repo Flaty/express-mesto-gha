@@ -81,7 +81,7 @@ module.exports.deleteLikes = (req, res) => {
     )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки.' });
+        return res.status(notFoundCode).send({ message: 'Передан несуществующий _id карточки.' });
       }
       return res.send({ card });
     })
