@@ -3,101 +3,94 @@ const {
   NOT_FOUND_ERROR_CODE,
   DEFAULT_ERROR_CODE,
   INCORRECT_DATA_ERROR_CODE,
+  OK_CREATED_CODE,
 } = require('../utils/constants');
 
-const USER_REF = [{ path: 'likes', model: 'user' }];
-
-module.exports.getCards = async (req, res) => {
-  try {
-    const cards = await Card.find({});
-    res.send(cards);
-  } catch (e) {
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось получить карточки',
-    });
-  }
+//return all cards
+module.exports.getCards = (req, res) => {
+  Card
+  .find({})
+  .then(cards => res.status(OK_CREATED_CODE).send(cards))
+  .catch(err => res.status(DEFAULT_ERROR_CODE).send({message: 'Возникла ошибка.'}))
 };
-
-module.exports.createCard = async (req, res) => {
-  try {
+//create card
+module.exports.createCard = (req, res) => {
     const { name, link } = req.body;
-    const card = await Card.create({ name, link, owner: req.user._id });
 
-    res.send({
-      message: 'Карточка успешно создана',
-    });
-  } catch (e) {
-    if (e.name === 'ValidationError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось создать карточку',
-    });
-  }
+    Card
+      .create({ name, link, owner: req.user._id })
+      .then(card => res.status(SUCCESS_CREATED_CODE).send(card))
+      .catch(err => {
+        if (err.name === 'ValidationError') {
+          res.status(INCORRECT_DATA_ERROR_CODE).send({
+            message: 'Переданы некорректные данные.'
+          });
+        } else {
+          res.status(DEFAULT_ERROR_CODE).send({message: 'Произошла ошибка.'})
+        }
+    })
+}
+//delete Card
+module.exports.deleteCard = (req, res) => {
+  const { cardId } = req.params;
+  Card
+    .findById(cardId)
+    .then(card => {
+      if (!card) {
+        return res.status(NOT_FOUND_ERROR_CODE).send({message: 'Передан неверный _id'})
+      }
+      return res.status(OK_CREATED_CODE).send(card);
+    })
+    .catch(err=> {
+      if (err.name === 'CastError') {
+        res.status(INCORRECT_DATA_ERROR_CODE).send({
+          message: 'Карточка не найдена'
+        })
+      } else {
+        res.status(DEFAULT_ERROR_CODE).send({message: 'Произошла ошибка.'})
+      }
+    })
 };
-
-module.exports.deleteCard = async (req, res) => {
-  try {
-    const card = await Card.findById(req.params.cardId);
+//setLike
+module.exports.getLikes = (req, res) => {
+  Card.findOneAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+  .then(card => {
     if (!card) {
-      return res.status(NOT_FOUND_ERROR_CODE).json({
-        message: 'Карточка не найдена',
-      });
+      return res.status(NOT_FOUND_ERROR_CODE).send({message: 'Передан несуществующий _id '})
     }
-    const cardDelete = await Card.findByIdAndRemove(req.params.cardId);
-    res.send({
-      message: 'Карточка удалена',
-    });
-  } catch (e) {
-    if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
+    return res.send({ card })
+  })
+  .catch(err => {
+    if (err.name === 'CastError') {
+      res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Невалидный id ' });
+    } else {
+      res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
     }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось удалить карточку',
-    });
-  }
-};
-
-const handleCardLike = async (req, res, options) => {
-  try {
-    const action = options.addLike ? '$addToSet' : '$pull';
-
-    const updatedCard = await Card.findOneAndUpdate(
+  });
+}
+//unSetLike
+module.exports.deleteLikes = (req, res) => {
+  Card
+    .findByIdAndUpdate(
       req.params.cardId,
-      { [action]: { likes: req.user._id } },
+      { $pull: { likes: req.user._id } },
       { new: true },
-    ).populate(USER_REF);
-
-    if (!updatedCard) {
-      return res.status(NOT_FOUND_ERROR_CODE).json({
-        message: 'Карточка не найдена',
-      });
-    }
-
-    res.send(updatedCard);
-  } catch (e) {
-    if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось изменить карточку',
-    });
-  }
-};
-
-module.exports.likeCard = (req, res) => {
-  handleCardLike(req, res, { addLike: true });
-};
-
-module.exports.dislikeCard = (req, res) => {
-  handleCardLike(req, res, { addLike: false });
+    )
+    .then(card => {
+      if (!card) {
+        return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки.' });
+      }
+      return res.send({ card });
+    })
+    .catch(err => {
+      if (err.name === 'CastError') {
+        res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Переданы некорректные данные ' });
+      } else {
+        res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка.' });
+      }
+    })
 };

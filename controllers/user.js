@@ -4,111 +4,80 @@ const {
   DEFAULT_ERROR_CODE,
   INCORRECT_DATA_ERROR_CODE
 } = require('../utils/constants');
-
-module.exports.getUsers = async (req, res) => {
-  try {
-    const user = await User.find({});
-    res.send(user);
-  } catch (e) {
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось получить пользователей',
-    });
-  }
+//get users
+module.exports.getUsers = (req, res) => {
+  User
+    .find({})
+    .then(users => res.send(users))
+    .catch(() => res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' }));
+};
+//create user
+module.exports.createUser = (req, res) => {
+  const { name, about, avatar } = req.body;
+  User
+    .create({ name, about, avatar })
+    .then(user => res.status(SUCCESS_CREATED_CODE).send(user))
+    .catch(err => {
+      if (err.name === 'ValidationError') {
+        res
+        .status(INCORRECT_DATA_ERROR_CODE)
+        .send({ message: 'Переданы некорректные данные.' });
+      } else {
+        res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
+      }
+    })
 };
 
-module.exports.getUser = async (req, res) => {
-  try {
-    const { id } = req.params.id;
-    const user = await User.findById(id);
+module.exports.getlUserById = (req, res) => {
+  const { userId } = req.params;
+  User
+    .findById(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден.' });
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Невалидный id ' });
+      } else {
+        res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
+      }
+    })
+}
 
-    if (!user) {
-      return res.status(NOT_FOUND_ERROR_CODE).json({
-        message: 'Пользователь не найден',
-      });
-    }
-
-    res.send(user);
-  } catch (e) {
-    if (e.name === 'CastError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось найти пользователя',
-    });
-  }
+module.exports.updateUser = (req, res) => {
+  const { name, about } = req.body;
+  User
+    .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then(user => res.status(OK_CREATED_CODE).send(user))
+    .catch(err => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        return res.status(INCORRECT_DATA_ERROR_CODE).send({
+          message: 'ереданы некорректные данные.',
+        });
+      }
+      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка' });
+    })
 };
 
+module.exports.updateAvatar = (req, res) => {
+  const { avatar } = req.body;
 
-
-module.exports.createUser = async (req, res) => {
-  try {
-    const { name, about, avatar } = req.body;
-    const user = User.create({ name, about, avatar });
-    res.send({
-      message: 'Пользователь успешно создан',
-    });
-  } catch (e) {
-    if (e.name === 'ValidationError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось создать пользователя',
-    });
-  }
-};
-
-module.exports.updateUserName = async (req, res) => {
-  try {
-    const { name, about } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { name, about },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    res.send(updatedUser);
-  } catch (e) {
-    if (e.name === 'ValidationError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось изменить пользователя',
-    });
-  }
-};
-
-module.exports.updateUserAvatar = async (req, res) => {
-  try {
-    const { avatar } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { avatar },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    res.send(updatedUser);
-  } catch (e) {
-    if (e.name === 'ValidationError') {
-      res.status(INCORRECT_DATA_ERROR_CODE).json({
-        message: 'Переданы не валидные данные'
-      });
-      return;
-    }
-    res.status(DEFAULT_ERROR_CODE).json({
-      message: 'Не удалось изменить пользователя',
-    });
-  }
-};
+  User
+  .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true, })
+  .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь по указанному _id не найден.' });
+      }
+      res.send(user);
+    })
+  .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Переданы некорректные данные.' });
+      } else {
+        res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
+      }
+    })
+}
