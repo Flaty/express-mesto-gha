@@ -25,7 +25,6 @@ app.use('/users', userRoutes);
 
 app.use('/cards', cardRoutes);
 
-
 app.use('*', (req, res) => {
   res.status(NOT_FOUND_ERROR_CODE).send({
     message: 'Запрашиваемый адрес страницы не существует.' 

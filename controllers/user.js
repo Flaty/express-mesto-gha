@@ -66,18 +66,18 @@ module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
 
   User
-  .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true, })
-  .then((user) => {
-      if (!user) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь по указанному _id не найден.' });
-      }
-      res.send(user);
-    })
-  .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Переданы некорректные данные.' });
-      } else {
-        res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
-      }
-    })
+    .findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true, })
+    .then((user) => {
+        if (!user) {
+          res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь по указанному _id не найден.' });
+        }
+        res.send(user);
+      })
+    .catch((err) => {
+        if (err.name === 'ValidationError') {
+          res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Переданы некорректные данные.' });
+        } else {
+          res.status(DEFAULT_ERROR_CODE).send({ message: 'Произошла ошибка.' });
+        }
+      })
 }

@@ -6,7 +6,7 @@ const {
   deleteCard,
   getLikes,
   deleteLikes,
-} = require('../controllers/cards');
+} = require('../controllers/card');
 
 cardRoutes.get('/', getCards);
 cardRoutes.post('/', createCards);
