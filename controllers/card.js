@@ -3,14 +3,12 @@ const {
   notFoundCode,
   defaultCode,
   incorrectCode,
-  okCode,
-  successCode,
 } = require('../utils/constants');
 // return all cards
 module.exports.getCards = (req, res) => {
   Card
     .find({})
-    .then((cards) => res.status(okCode).send(cards))
+    .then((cards) => res.send(cards))
     .catch(() => res.status(defaultCode).send({ message: 'Возникла ошибка.' }));
 };
 // create card
@@ -18,7 +16,7 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   Card
     .create({ name, link, owner: req.user._id })
-    .then((card) => res.status(successCode).send(card))
+    .then((card) => res.send({card}))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(incorrectCode).send({
@@ -33,12 +31,12 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
   Card
-    .findById(cardId)
+    .findOneAndRemove({ _id: cardId})
     .then((card) => {
       if (!card) {
         return res.status(notFoundCode).send({ message: 'Передан неверный _id' });
       }
-      return res.status(okCode).send(card);
+      return res.send({card});
     })
     .catch((err) => {
       if (err.name === 'CastError') {

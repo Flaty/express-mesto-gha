@@ -3,22 +3,20 @@ const {
   notFoundCode,
   defaultCode,
   incorrectCode,
-  okCode,
-  successCode,
 } = require('../utils/constants');
 // get users
 module.exports.getUsers = (req, res) => {
   User
     .find({})
-    .then((users) => res.send(users))
-    .catch(() => res.status(defaultCode).send({ message: 'Произошла ошибка.' }));
+    .then((users) => res.send({users}))
+    .catch(() => res.send({ message: 'Произошла ошибка.' }));
 };
 // create user
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User
     .create({ name, about, avatar })
-    .then((user) => res.status(successCode).send(user))
+    .then((user) => res.send({user}))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res

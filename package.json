@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dacorm/express-mesto-gha.git"
+    "url": "git+https://github.com/Flaty/express-mesto-gha.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dacorm/express-mesto-gha/issues"
+    "url": "https://github.com/Flaty/express-mesto-gha/issues"
   },
-  "homepage": "https://github.com/dacorm/express-mesto-gha#readme",
+  "homepage": "https://github.com/Flaty/express-mesto-gha#readme",
   "devDependencies": {
     "eslint": "^8.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
