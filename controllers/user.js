@@ -8,7 +8,7 @@ const {
 module.exports.getUsers = (req, res) => {
   User
     .find({})
-    .then((users) => res.send({users}))
+    .then((users) => res.send({ users }))
     .catch(() => res.send({ message: 'Произошла ошибка.' }));
 };
 // create user
@@ -16,7 +16,7 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User
     .create({ name, about, avatar })
-    .then((user) => res.send({user}))
+    .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
@@ -51,7 +51,7 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .then((user) => res.status(okCode).send(user))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(incorrectCode).send({
