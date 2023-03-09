@@ -31,7 +31,7 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
   Card
-    .findOneAndRemove({ _id: cardId })
+    .findByIdAndRemove({ _id: cardId })
     .then((card) => {
       if (!card) {
         return res.status(notFoundCode).send({ message: 'Передан неверный _id' });
@@ -50,7 +50,7 @@ module.exports.deleteCard = (req, res) => {
 };
 // setLike
 module.exports.getLikes = (req, res) => {
-  Card.findOneAndUpdate(
+  Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
