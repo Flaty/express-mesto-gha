@@ -20,7 +20,7 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
-          .status(incorrectCode)
+          .status(notFoundCode)
           .send({ message: 'Переданы некорректные данные.' });
       } else {
         res.status(defaultCode).send({ message: 'Произошла ошибка.' });
