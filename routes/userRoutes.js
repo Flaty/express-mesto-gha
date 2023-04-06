@@ -2,7 +2,7 @@ const userRoutes = require('express').Router();
 
 const {
   getUsers,
-  getUserById,
+  getlUserById,
   updateUser,
   updateAvatar,
   getCurrentUser,
@@ -16,7 +16,7 @@ const {
 
 userRoutes.get('/', getUsers);
 userRoutes.get('/me', getCurrentUser);
-userRoutes.get('/:userId', validationUserId, getUserById);
+userRoutes.get('/:userId', validationUserId, getlUserById);
 userRoutes.patch('/me', validationUpdateUser, updateUser);
 userRoutes.patch('/me/avatar', validationUpdateAvatar, updateAvatar);
 module.exports = userRoutes;

@@ -1,5 +1,6 @@
 const BadRequestError = require('../errors/bad-request-errors');
 const NotFoundError = require('../errors/not-found-errors');
+const User = require('../models/user');
 
 module.exports.getUserInfo = (req, res, next) => {
   User
@@ -16,37 +17,8 @@ module.exports.getUsers = (req, res, next) => {
     .then((user) => res.status(200).send({ data: user[0] }))
     .catch(next);
 };
-// create user
-module.exports.createUser = (req, res) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
 
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create(
-      {
-        name, about, avatar, email, password: hash,
-      },
-    ))
-    .then((user) => {
-      const userWithOutPassword = user.toObject();
-      delete userWithOutPassword.password;
-      res.status(201).send(userWithOutPassword);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-        return;
-      }
-      if (err.code === 11000) {
-        next(new ConflictError('Пользователь с таким email уже существует!'));
-        return;
-      }
-      next(err);
-    });
-};
-
-module.exports.getlUserById = (req, res) => {
+module.exports.getlUserById = (req, res, next) => {
   const { userId } = req.params;
   User
     .findById(userId)
@@ -54,7 +26,7 @@ module.exports.getlUserById = (req, res) => {
       if (!user) {
         throw new NotFoundError('Запрошенный пользователь не найден');
       }
-      res.status(STATUS_OK).send({ data: user });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -98,7 +70,7 @@ module.exports.updateAvatar = (req, res, next) => {
       if (!user) {
         throw new NotFoundError(`Пользователь с идентификатором ${userId} не найден`);
       }
-      res.status(STATUS_OK).send({ data: user });
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -111,18 +83,4 @@ module.exports.updateAvatar = (req, res, next) => {
       }
       next(err);
     });
-};
-
-module.exports.login = (req, res, next) => {
-  const { email } = req.body;
-
-  return User.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new AuthError('Неправильная почта или пароль');
-      }
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-      res.send({ token, name: user.name, email: user.email });
-    })
-    .catch(next);
 };
