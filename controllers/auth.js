@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const BadRequestError = require('../errors/bad-request-errors');
-const ConflictError = require('../errors/conflict-error'); 
+const ConflictError = require('../errors/conflict-error');
 
 module.exports.createUsers = (req, res, next) => {
   const {

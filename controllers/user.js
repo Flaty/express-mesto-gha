@@ -6,7 +6,7 @@ module.exports.getUserInfo = (req, res, next) => {
     .find({})
     .then((users) => res.send(users))
     .catch(next);
-}
+};
 
 // get users
 module.exports.getUsers = (req, res, next) => {
@@ -18,11 +18,15 @@ module.exports.getUsers = (req, res, next) => {
 };
 // create user
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar, email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
   bcrypt.hash(password, 10)
     .then((hash) => User.create(
-      { name, about, avatar, email, password: hash },
+      {
+        name, about, avatar, email, password: hash,
+      },
     ))
     .then((user) => {
       const userWithOutPassword = user.toObject();
@@ -35,7 +39,7 @@ module.exports.createUser = (req, res) => {
         return;
       }
       if (err.code === 11000) {
-        next(new ConflictError(`Пользователь с таким email уже существует!`));
+        next(new ConflictError('Пользователь с таким email уже существует!'));
         return;
       }
       next(err);
@@ -67,7 +71,7 @@ module.exports.updateUser = (req, res, next) => {
     .findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        throw new NotFoundError(`Идентификатор пользователя не найден`);
+        throw new NotFoundError('Идентификатор пользователя не найден');
       }
       res.status(200).send({ data: user });
     })
@@ -100,7 +104,7 @@ module.exports.updateAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Invalid data passed when updating profile'));
         return;
-      }       
+      }
       if (err.name === 'CastError') {
         next(new BadRequestError('Идентификатор пользователя неверен'));
         return;

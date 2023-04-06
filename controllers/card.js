@@ -25,7 +25,7 @@ module.exports.createCard = (req, res, next) => {
     });
 };
 // delete Card
-module.exports.deleteCard = (req, res,next ) => {
+module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   return cardSchema.findById(cardId)
     .then((card) => {
@@ -42,23 +42,23 @@ module.exports.deleteCard = (req, res,next ) => {
 // setLike
 module.exports.getLikes = (req, res, next) => {
   Card
-  .findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  )
-  .then((card) => {
-    if (!card) {
-      throw new NotFoundError('Пользователь не найден');
-    }
-    res.send({ data: card });
-  })
-  .catch((err) => {
-    if (err.name === 'CastError') {
-      return next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
-    }
-    return next(err);
-  });
+    .findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    )
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Пользователь не найден');
+      }
+      res.send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
+      }
+      return next(err);
+    });
 };
 // unSetLike
 module.exports.deleteLikes = (req, res, next) => {
