@@ -1,76 +1,67 @@
 const Card = require('../models/card');
-const {
-  notFoundCode,
-  defaultCode,
-  incorrectCode,
-} = require('../utils/constants');
+const BadRequestError = require('../errors/bad-request-errors');
+const NotFoundError = require('../errors/not-found-errors');
+const ForbiddenError = require('../errors/forbidden-error');
+
 // return all cards
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card
     .find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(defaultCode).send({ message: 'Возникла ошибка.' }));
+    .catch(next);
 };
 // create card
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card
     .create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ card }))
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(incorrectCode).send({
-          message: 'Переданы некорректные данные.',
-        });
+        next(new BadRequestError('Переданы некорректные данные при создании карточки'));
       } else {
-        res.status(defaultCode).send({ message: 'Произошла ошибка.' });
+        next(err);
       }
     });
 };
 // delete Card
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res,next ) => {
   const { cardId } = req.params;
-  Card
-    .findByIdAndRemove({ _id: cardId })
+  return cardSchema.findById(cardId)
     .then((card) => {
       if (!card) {
-        return res.status(notFoundCode).send({ message: 'Передан неверный _id' });
+        throw new NotFoundError('Пользователь не найден');
       }
-      return res.send({ card });
+      if (!card.owner.equals(req.user._id)) {
+        return next(new ForbiddenError('Вы не можете удалить чужую карточку'));
+      }
+      return card.remove().then(() => res.send({ message: 'Карточка успешно удалена' }));
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(incorrectCode).send({
-          message: 'Карточка не найдена',
-        });
-      } else {
-        res.status(defaultCode).send({ message: 'Произошла ошибка.' });
-      }
-    });
+    .catch(next);
 };
 // setLike
-module.exports.getLikes = (req, res) => {
-  Card.findByIdAndUpdate(
+module.exports.getLikes = (req, res, next) => {
+  Card
+  .findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        return res.status(notFoundCode).send({ message: 'Передан несуществующий _id ' });
-      }
-      return res.send({ card });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(incorrectCode).send({ message: 'Невалидный id ' });
-      } else {
-        res.status(defaultCode).send({ message: 'Произошла ошибка.' });
-      }
-    });
+  .then((card) => {
+    if (!card) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+    res.send({ data: card });
+  })
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      return next(new BadRequestError('Переданы некорректные данные для постановки лайка'));
+    }
+    return next(err);
+  });
 };
 // unSetLike
-module.exports.deleteLikes = (req, res) => {
+module.exports.deleteLikes = (req, res, next) => {
   Card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -79,15 +70,15 @@ module.exports.deleteLikes = (req, res) => {
     )
     .then((card) => {
       if (!card) {
-        return res.status(notFoundCode).send({ message: 'Передан несуществующий _id карточки.' });
+        throw new NotFoundError('Запрос не найден');
       }
-      return res.send({ card });
+      res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(incorrectCode).send({ message: 'Переданы некорректные данные ' });
-      } else {
-        res.status(defaultCode).send({ message: 'Ошибка.' });
+        next(new BadRequestError('Идентификатор карточки неверен'));
+        return;
       }
+      next(err);
     });
 };
